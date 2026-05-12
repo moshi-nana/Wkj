@@ -1,0 +1,26 @@
+{
+  "entities": {
+    "Transaction": {
+      "title": "Transaction",
+      "description": "User financial transaction record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["pemasukan", "pengeluaran"] },
+        "amount": { "type": "number" },
+        "date": { "type": "string", "format": "date" },
+        "categoryId": { "type": "string" },
+        "category": { "type": "string" },
+        "note": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "type", "amount", "date", "categoryId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "User transactions stored in a subcollection under the user document"
+    }
+  }
+}

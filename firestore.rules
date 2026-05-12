@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      
+      match /transactions/{transactionId} {
+        allow read: if isOwner(userId);
+        
+        function isValidTransaction(data) {
+          return data.id is string && data.id.size() <= 128
+            && data.type in ['pemasukan', 'pengeluaran']
+            && data.amount is number && data.amount >= 0
+            && data.date is string && data.date.size() <= 20
+            && data.categoryId is string && data.categoryId.size() <= 128
+            && data.createdAt is number;
+        }
+
+        allow create: if isOwner(userId) 
+          && isValidId(transactionId)
+          && isValidTransaction(request.resource.data)
+          && request.resource.data.id == transactionId;
+
+        allow update: if isOwner(userId)
+          && isValidTransaction(request.resource.data)
+          && request.resource.data.id == resource.data.id
+          && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['amount', 'type', 'date', 'categoryId', 'category', 'note', 'createdAt']));
+
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

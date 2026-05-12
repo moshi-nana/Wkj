@@ -1,0 +1,6 @@
+{
+  "name": "Catat Keuangan",
+  "description": "Aplikasi pencatatan keuangan dengan fitur input suara",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": []
+}
